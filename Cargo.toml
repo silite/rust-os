@@ -13,8 +13,17 @@ edition = "2021"
 
 [dependencies]
 bootloader = "0.9.8"
+# https://en.wikipedia.org/wiki/Volatile_(computer_programming)
+volatile = "0.2.6"
+# 自旋锁
+spin = "0.5.2"
 
-# cargo build --target thumbv7em-none-eabihf
+[dependencies.lazy_static]
+# 不连接标准库
+version = "1.0"
+features = ["spin_no_std"]
+
+# cargo build --target thumbv7em-none-eabihfversion = "1.0"
 
 # # Linux
 # cargo rustc -- -C link-arg=-nostartfiles
