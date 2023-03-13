@@ -1,0 +1,22 @@
+[package]
+name = "rust-os"
+version = "0.1.0"
+edition = "2021"
+
+# 当panic发生时Rust会使用展开来析构那些活跃在栈上的变量。这会确保所有使用的内存都会被释放，并允许父进程捕获panic，处理并继续运行。
+# Disabled Unwinding, panic时终止，可以阻止操作系统默认展开栈
+[profile.dev]
+panic = "abort"
+[profile.release]
+panic = "abort"
+
+[dependencies]
+
+# cargo build --target thumbv7em-none-eabihf
+
+# # Linux
+# cargo rustc -- -C link-arg=-nostartfiles
+# # Windows
+# cargo rustc -- -C link-args="/ENTRY:_start /SUBSYSTEM:console"
+# # macOS
+# cargo rustc -- -C link-args="-e __start -static -nostartfiles"
