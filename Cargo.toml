@@ -18,6 +18,7 @@ volatile = "0.2.6"
 # 自旋锁
 spin = "0.5.2"
 x86_64 = "0.14.2"
+uart_16550 = "0.2.0"
 
 [dependencies.lazy_static]
 # 不连接标准库
@@ -25,8 +26,15 @@ version = "1.0"
 features = ["spin_no_std"]
 
 [package.metadata.bootimage]
-test-args = ["-device", "isa-debug-exit,iobase=0xf4,iosize=0x04"]
-test-success-exit-code = 33                                       # (0x10 << 1) | 1
+test-args = [
+    "-device",
+    "isa-debug-exit,iobase=0xf4,iosize=0x04",
+    "-serial",
+    "stdio",
+    "-display",
+    "none",
+]
+test-success-exit-code = 33 # (0x10 << 1) | 1
 
 # cargo build --target thumbv7em-none-eabihfversion = "1.0"
 
@@ -36,3 +44,8 @@ test-success-exit-code = 33                                       # (0x10 << 1) 
 # cargo rustc -- -C link-args="/ENTRY:_start /SUBSYSTEM:console"
 # # macOS
 # cargo rustc -- -C link-args="-e __start -static -nostartfiles"
+
+# 默认的test runner和自定义的test runner功能都将被禁用
+[[test]]
+name = "should_panic"
+harness = false
