@@ -1,3 +1,6 @@
+use core::f64::consts::PI;
+
+use crate::print;
 use crate::println;
 
 use crate::gdt;
@@ -54,7 +57,11 @@ extern "x86-interrupt" fn double_fault_handler(
 }
 
 extern "x86-interrupt" fn timer_interrupt_handler(stack_frame: InterruptStackFrame) {
-    println!("Timer...");
+    print!(".");
+    unsafe {
+        PICS.lock()
+            .notify_end_of_interrupt(InterruptIndex::Timer as u8);
+    }
 }
 
 pub fn init_idt() {
