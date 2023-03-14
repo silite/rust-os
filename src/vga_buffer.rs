@@ -20,7 +20,11 @@ macro_rules! println {
 pub fn _print(args: fmt::Arguments) {
     // 孤儿?
     use core::fmt::Write;
-    WRITER.lock().write_fmt(args).unwrap();
+    use x86_64::instructions::interrupts;
+
+    interrupts::without_interrupts(|| {
+        WRITER.lock().write_fmt(args).unwrap();
+    });
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
