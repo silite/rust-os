@@ -18,7 +18,9 @@ fn panic(info: &PanicInfo) -> ! {
     // this function is the entry point, since the linker looks for a function
     // named `_start` by default
     println!("{}", info);
-    loop {}
+    loop {
+        rust_os::hlt_loop();
+    }
 }
 
 #[cfg(test)]
@@ -46,5 +48,8 @@ pub extern "C" fn _start() -> ! {
     #[cfg(test)]
     test_main();
 
-    loop {}
+    loop {
+        // 在下一个中断触发之前休息一下，进入休眠状态来节省一点点能源
+        rust_os::hlt_loop();
+    }
 }
