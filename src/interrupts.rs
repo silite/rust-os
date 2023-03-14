@@ -69,7 +69,23 @@ extern "x86-interrupt" fn keyboard_interrupt_handler(stack_frame: InterruptStack
     let mut port = Port::new(0x60);
     // 获取扫描码之前，是不会发送下一个中断的
     let scancode: u8 = unsafe { port.read() };
-    print!("{}", scancode);
+    // new
+    let key = match scancode {
+        0x02 => Some('1'),
+        0x03 => Some('2'),
+        0x04 => Some('3'),
+        0x05 => Some('4'),
+        0x06 => Some('5'),
+        0x07 => Some('6'),
+        0x08 => Some('7'),
+        0x09 => Some('8'),
+        0x0a => Some('9'),
+        0x0b => Some('0'),
+        _ => None,
+    };
+    if let Some(key) = key {
+        print!("{}", key);
+    }
 
     unsafe {
         PICS.lock()
