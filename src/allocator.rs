@@ -6,13 +6,37 @@ use x86_64::{
     VirtAddr,
 };
 
+pub mod bump;
+
+pub struct Locked<T> {
+    inner: spin::Mutex<T>,
+}
+
+impl<T> Locked<T> {
+    pub const fn new(inner: T) -> Self {
+        Self {
+            inner: spin::Mutex::new(inner),
+        }
+    }
+
+    pub fn lock(&self) -> spin::MutexGuard<T> {
+        self.inner.lock()
+    }
+}
+
 pub const HEAP_START: usize = 0x_4444_4444_0000;
 pub const HEAP_SIZE: usize = 100 * 1024; // 100 KiB
 
-use linked_list_allocator::LockedHeap;
+// 1. use crate linked_list_allocator
+// use linked_list_allocator::LockedHeap;
 
+// #[global_allocator]
+// static ALLOCATOR: LockedHeap = LockedHeap::empty();
+
+// 2. use bump allocator
+use bump::BumpAllocator;
 #[global_allocator]
-static ALLOCATOR: LockedHeap = LockedHeap::empty();
+static ALLOCATOR: Locked<BumpAllocator> = Locked::new(BumpAllocator::new());
 
 // for map the heap pages to physical memory
 pub fn init_heap(
@@ -42,4 +66,16 @@ pub fn init_heap(
     unsafe { ALLOCATOR.lock().init(HEAP_START, HEAP_SIZE) };
 
     Ok(())
+}
+
+fn align_up(addr: usize, align: usize) -> usize {
+    let remainder = addr % align;
+    if remainder == 0 {
+        addr // addr already aligned
+    } else {
+        addr - remainder + align
+    }
+    // Requires that `align` is a power of two.
+    // powerful
+    // (addr + align - 1) & !(align - 1)
 }
