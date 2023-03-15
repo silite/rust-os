@@ -6,7 +6,10 @@ use x86_64::{
     VirtAddr,
 };
 
+use self::linked_list::LinkedListAllocator;
+
 pub mod bump;
+pub mod linked_list;
 
 pub struct Locked<T> {
     inner: spin::Mutex<T>,
@@ -34,9 +37,13 @@ pub const HEAP_SIZE: usize = 100 * 1024; // 100 KiB
 // static ALLOCATOR: LockedHeap = LockedHeap::empty();
 
 // 2. use bump allocator
-use bump::BumpAllocator;
+// use bump::BumpAllocator;
+// #[global_allocator]
+// static ALLOCATOR: Locked<BumpAllocator> = Locked::new(BumpAllocator::new());
+
+// 3. locally impl LinkedListAllocator
 #[global_allocator]
-static ALLOCATOR: Locked<BumpAllocator> = Locked::new(BumpAllocator::new());
+static ALLOCATOR: Locked<LinkedListAllocator> = Locked::new(LinkedListAllocator::new());
 
 // for map the heap pages to physical memory
 pub fn init_heap(
