@@ -56,28 +56,12 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
 
     // 映射未使用的页
     let page = Page::containing_address(VirtAddr::new(0));
+    // 虚拟页0映射到物理页帧0xb8000
     memory::create_example_mapping(page, &mut mapper, &mut frame_allocator);
 
     // 通过新的映射将字符串 `New!`  写到屏幕上。
     let page_ptr: *mut u64 = page.start_address().as_mut_ptr();
     unsafe { page_ptr.offset(400).write_volatile(0x_f021_f077_f065_f04e) };
-
-    // let addresses = [
-    //     // the identity-mapped vga buffer page
-    //     0xb8000,
-    //     // some code page
-    //     0x201008,
-    //     // some stack page
-    //     0x0100_0020_1a10,
-    //     // virtual address mapped to physical address 0
-    //     boot_info.physical_memory_offset,
-    // ];
-
-    // for &address in &addresses {
-    //     let virt = VirtAddr::new(address);
-    //     let phys = mapper.translate_addr(virt);
-    //     println!("{:?} -> {:?}", virt, phys);
-    // }
 
     #[cfg(test)]
     test_main();
