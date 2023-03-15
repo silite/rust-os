@@ -9,10 +9,11 @@
 mod serial;
 mod vga_buffer;
 
+extern crate alloc;
+
+use alloc::boxed::Box;
 use bootloader::{entry_point, BootInfo};
 use core::panic::PanicInfo;
-use rust_os::memory::BootInfoFrameAllocator;
-use x86_64::structures::paging::Translate;
 
 /// This function is called on panic.
 #[cfg(not(test))]
@@ -48,6 +49,8 @@ entry_point!(kernel_main);
              // bootloader初始化时，将启动信息传入 features = ["map_physical_memory"]
 fn kernel_main(_boot_info: &'static BootInfo) -> ! {
     rust_os::init();
+
+    Box::new(4);
 
     #[cfg(test)]
     test_main();

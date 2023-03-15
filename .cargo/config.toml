@@ -4,7 +4,7 @@
 # https://github.com/rust-lang/compiler-builtins/blob/eff506cd49b637f1ab5931625a33cef7e91fbbf6/src/mem.rs#L12-L69
 # https://doc.rust-lang.org/cargo/reference/config.html
 build-std-features = ["compiler-builtins-mem"]
-build-std = ["core", "compiler_builtins"]
+build-std = ["core", "compiler_builtins", "alloc"]
 
 [build]
 target = "x86_64-rust_os.json"
