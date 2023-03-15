@@ -69,28 +69,3 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
         rust_os::hlt_loop();
     }
 }
-
-#[test_case]
-fn test_heap() {
-    let test_heap = Box::new(4);
-    println!("{:p}", test_heap);
-
-    let mut vec = Vec::new();
-    for i in 0..500 {
-        vec.push(i);
-    }
-    println!("vec at {:p}", vec.as_slice());
-
-    // create a reference counted vector -> will be freed when count reaches 0
-    let reference_counted = Rc::new(vec![1, 2, 3]);
-    let cloned_reference = reference_counted.clone();
-    println!(
-        "current reference count is {}",
-        Rc::strong_count(&cloned_reference)
-    );
-    core::mem::drop(reference_counted);
-    println!(
-        "reference count is {} now",
-        Rc::strong_count(&cloned_reference)
-    );
-}
