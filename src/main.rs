@@ -9,6 +9,7 @@
 mod serial;
 mod vga_buffer;
 
+use bootloader::{entry_point, BootInfo};
 use core::panic::PanicInfo;
 
 /// This function is called on panic.
@@ -37,20 +38,34 @@ fn panic(info: &PanicInfo) -> ! {
  * Instead, we need to overwrite the crt0 entry point directly.
  */
 
+// 宏为定义了真正的低级_start入口点
+entry_point!(kernel_main);
+
 // overwriting the operating system entry point with our own _start function:
 #[no_mangle] // don't mangle the name of this function
-pub extern "C" fn _start() -> ! {
-    println!("Hello World{}", "!");
+fn kernel_main(boot_info: &'static BootInfo) -> ! {
+    use rust_os::memory::active_level_4_table;
+    use x86_64::{structures::paging::PageTable, VirtAddr};
 
     rust_os::init();
 
-    use x86_64::registers::control::Cr3;
+    let phys_mem_offset = VirtAddr::new(boot_info.physical_memory_offset);
+    let l4_table = unsafe { active_level_4_table(phys_mem_offset) };
+    for (i, entry) in l4_table.iter().enumerate() {
+        if !entry.is_unused() {
+            println!("L4 Entry {}: {:?}", i, entry);
 
-    let (level_4_page_table, _) = Cr3::read();
-    println!(
-        "Level 4 page table at: {:?}",
-        level_4_page_table.start_address()
-    );
+            let phys = entry.frame().unwrap().start_address();
+            let virt = phys.as_u64() + boot_info.physical_memory_offset;
+            let ptr = VirtAddr::new(virt).as_ptr();
+            let l3_table: &PageTable = unsafe { &*ptr };
+            for (i, entry) in l3_table.iter().enumerate() {
+                if !entry.is_unused() {
+                    println!("  L3 Entry {}: {:?}", i, entry);
+                }
+            }
+        }
+    }
 
     #[cfg(test)]
     test_main();

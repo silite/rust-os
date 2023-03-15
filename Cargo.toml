@@ -12,7 +12,9 @@ edition = "2021"
 # panic = "abort"
 
 [dependencies]
-bootloader = "0.9.8"
+# bootloader 将整个物理内存映射到一些未使用的虚拟地址范围。为了将虚拟地址范围传达给内核，bootloader 传递了一个 启动信息 结构。
+# 映射完整物理内存
+bootloader = { version = "0.9.8", features = ["map_physical_memory"] }
 # https://en.wikipedia.org/wiki/Volatile_(computer_programming)
 volatile = "0.2.6"
 # 自旋锁
