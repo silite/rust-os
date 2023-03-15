@@ -12,8 +12,13 @@ mod vga_buffer;
 extern crate alloc;
 
 use alloc::boxed::Box;
+use alloc::rc::Rc;
+use alloc::vec;
+use alloc::vec::Vec;
 use bootloader::{entry_point, BootInfo};
 use core::panic::PanicInfo;
+use rust_os::allocator;
+use rust_os::memory::BootInfoFrameAllocator;
 use x86_64::VirtAddr;
 
 /// This function is called on panic.
@@ -49,9 +54,6 @@ entry_point!(kernel_main);
 #[no_mangle] // don't mangle the name of this function
              // bootloader初始化时，将启动信息传入 features = ["map_physical_memory"]
 fn kernel_main(boot_info: &'static BootInfo) -> ! {
-    use rust_os::allocator;
-    use rust_os::memory::BootInfoFrameAllocator;
-
     rust_os::init();
 
     let phy_mom_offset = VirtAddr::new(boot_info.physical_memory_offset);
@@ -66,4 +68,29 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
         // 在下一个中断触发之前休息一下，进入休眠状态来节省一点点能源
         rust_os::hlt_loop();
     }
+}
+
+#[test_case]
+fn test_heap() {
+    let test_heap = Box::new(4);
+    println!("{:p}", test_heap);
+
+    let mut vec = Vec::new();
+    for i in 0..500 {
+        vec.push(i);
+    }
+    println!("vec at {:p}", vec.as_slice());
+
+    // create a reference counted vector -> will be freed when count reaches 0
+    let reference_counted = Rc::new(vec![1, 2, 3]);
+    let cloned_reference = reference_counted.clone();
+    println!(
+        "current reference count is {}",
+        Rc::strong_count(&cloned_reference)
+    );
+    core::mem::drop(reference_counted);
+    println!(
+        "reference count is {} now",
+        Rc::strong_count(&cloned_reference)
+    );
 }
