@@ -45,6 +45,7 @@ entry_point!(kernel_main);
 
 // overwriting the operating system entry point with our own _start function:
 #[no_mangle] // don't mangle the name of this function
+             // bootloader初始化时，将启动信息传入 features = ["map_physical_memory"]
 fn kernel_main(_boot_info: &'static BootInfo) -> ! {
     rust_os::init();
 
