@@ -14,6 +14,7 @@ extern crate alloc;
 use alloc::boxed::Box;
 use bootloader::{entry_point, BootInfo};
 use core::panic::PanicInfo;
+use x86_64::VirtAddr;
 
 /// This function is called on panic.
 #[cfg(not(test))]
@@ -47,10 +48,16 @@ entry_point!(kernel_main);
 // overwriting the operating system entry point with our own _start function:
 #[no_mangle] // don't mangle the name of this function
              // bootloader初始化时，将启动信息传入 features = ["map_physical_memory"]
-fn kernel_main(_boot_info: &'static BootInfo) -> ! {
+fn kernel_main(boot_info: &'static BootInfo) -> ! {
+    use rust_os::allocator;
+    use rust_os::memory::BootInfoFrameAllocator;
+
     rust_os::init();
 
-    Box::new(4);
+    let phy_mom_offset = VirtAddr::new(boot_info.physical_memory_offset);
+    let mut mapper = unsafe { rust_os::memory::init(phy_mom_offset) };
+    let mut frame_allocator = unsafe { BootInfoFrameAllocator::init(&boot_info.memory_map) };
+    allocator::init_heap(&mut mapper, &mut frame_allocator).expect("heap initialization failed");
 
     #[cfg(test)]
     test_main();
