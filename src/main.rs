@@ -19,6 +19,8 @@ use bootloader::{entry_point, BootInfo};
 use core::panic::PanicInfo;
 use rust_os::allocator;
 use rust_os::memory::BootInfoFrameAllocator;
+use rust_os::task::simple_executor::SimpleExecutor;
+use rust_os::task::Task;
 use x86_64::VirtAddr;
 
 /// This function is called on panic.
@@ -61,6 +63,10 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
     let mut frame_allocator = unsafe { BootInfoFrameAllocator::init(&boot_info.memory_map) };
     allocator::init_heap(&mut mapper, &mut frame_allocator).expect("heap initialization failed");
 
+    let mut executor = SimpleExecutor::new();
+    executor.spawn(Task::new(example_task()));
+    executor.run();
+
     #[cfg(test)]
     test_main();
 
@@ -68,4 +74,13 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
         // 在下一个中断触发之前休息一下，进入休眠状态来节省一点点能源
         rust_os::hlt_loop();
     }
+}
+
+async fn async_number() -> u32 {
+    42
+}
+
+async fn example_task() {
+    let number = async_number().await;
+    println!("async number: {}", number);
 }
